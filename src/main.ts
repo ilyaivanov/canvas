@@ -1,6 +1,6 @@
 import { viewAxis } from "./axis";
 import { FullScreenCanvas } from "./canvas";
-import { multiply, add, Vector } from "./vector";
+import { multiply, add, Vector, squareComplexNumber } from "./vector";
 
 const canvas = new FullScreenCanvas({ onResize: render });
 
@@ -20,11 +20,8 @@ function render() {
 
   const iterations: Vector[] = [pointPosition];
   let lastVal = pointPosition;
-  for (var i = 0; i < 10; i++) {
-    const val: Vector = {
-      x: lastVal.x * lastVal.x,
-      y: lastVal.y * lastVal.y,
-    };
+  for (var i = 0; i < 20; i++) {
+    const val: Vector = add(squareComplexNumber(lastVal), cPointPosition);
     iterations.push(val);
     lastVal = val;
   }

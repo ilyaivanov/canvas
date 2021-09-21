@@ -25,3 +25,8 @@ export const multiply = (v: Vector, val: number): Vector => ({
   y: v.y * val,
 });
 export type Vector = { x: number; y: number };
+
+export const squareComplexNumber = (v: Vector): Vector => ({
+  x: v.x * v.x - v.y * v.y,
+  y: 2 * v.x * v.y,
+});
