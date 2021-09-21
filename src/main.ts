@@ -18,11 +18,48 @@ const ctx = elem.getContext("2d")!;
 document.body.appendChild(elem);
 
 const render = () => {
+  ctx.clearRect(0, 0, Number.MAX_VALUE, Number.MAX_VALUE);
   renderHorizontalAxis();
   renderVerticalAxis();
-  canvas.dotAtPoint({ x: -2, y: 1.8 });
+  canvas.drawOutlinedCircle({ x: 0, y: 0 }, scale);
+
+  const iterations: Vector[] = [point];
+  let lastVal = point;
+  for (var i = 0; i < 10; i++) {
+    const val: Vector = {
+      x: lastVal.x * lastVal.x,
+      y: lastVal.y * lastVal.y,
+    };
+    iterations.push(val);
+    lastVal = val;
+  }
+  pointsConnected(iterations);
 };
-const scale = 200; //pixels to unit ratio
+
+const pointsConnected = (p: Vector[]) => {
+  for (var i = 0; i < p.length - 1; i++) {
+    canvas.drawLineBetweenPoints(p[i], p[i + 1], "blue");
+    canvas.dotAtPoint(p[i]);
+  }
+  canvas.dotAtPoint(p[p.length - 1]);
+};
+
+let point: Vector = { x: -2, y: 1.8 };
+
+document.addEventListener("mousedown", (e) => {
+  const updatePointFromMouseEvent = (e: MouseEvent) => {
+    point = transformations.screenToPoint({ x: e.clientX, y: e.clientY });
+    render();
+  };
+  updatePointFromMouseEvent(e);
+
+  document.addEventListener("mousemove", updatePointFromMouseEvent);
+  document.addEventListener("mouseup", () => {
+    document.removeEventListener("mousemove", updatePointFromMouseEvent);
+  });
+});
+
+const scale = 100; //pixels to unit ratio
 
 const renderHorizontalAxis = () => {
   canvas.drawLine(
@@ -32,11 +69,7 @@ const renderHorizontalAxis = () => {
   );
 
   const maxNumberToShow = Math.ceil(window.innerHeight / 2 / scale);
-  const valuesToRender = range(
-    -maxNumberToShow,
-    maxNumberToShow,
-    maxNumberToShow / 10
-  );
+  const valuesToRender = range(-maxNumberToShow, maxNumberToShow, 0.5);
 
   valuesToRender.forEach((v) => {
     if (!isZero(v)) {
@@ -59,11 +92,7 @@ const renderVerticalAxis = () => {
   );
 
   const maxNumberToShow = Math.ceil(window.innerWidth / 2 / scale);
-  const valuesToRender = range(
-    -maxNumberToShow,
-    maxNumberToShow,
-    maxNumberToShow / 10
-  );
+  const valuesToRender = range(-maxNumberToShow, maxNumberToShow, 0.5);
 
   valuesToRender.forEach((v) => {
     const zeroShift = isZero(v) ? -8 : 0;
@@ -83,12 +112,26 @@ const canvas = {
   drawLine: (p1: Vector, p2: Vector, color: string) => {
     ctx.strokeStyle = color;
     ctx.beginPath();
-    const screenP1 = worldToScreen(p1);
-    const screenP2 = worldToScreen(p2);
+    const screenP1 = transformations.worldToScreen(p1);
+    const screenP2 = transformations.worldToScreen(p2);
     ctx.moveTo(screenP1.x, screenP1.y);
     ctx.lineTo(screenP2.x, screenP2.y);
     ctx.stroke();
-    ctx.closePath();
+  },
+  drawLineBetweenPoints: (p1: Vector, p2: Vector, color: string) => {
+    canvas.drawLine(
+      transformations.pointToWorld(p1),
+      transformations.pointToWorld(p2),
+      color
+    );
+  },
+
+  drawOutlinedCircle: (point: Vector, r: number) => {
+    ctx.strokeStyle = "grey";
+    const p = transformations.pointToScreen(point);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, 2 * Math.PI);
+    ctx.stroke();
   },
 
   drawTextAtWorldPosition: (
@@ -98,15 +141,17 @@ const canvas = {
     baseline?: CanvasTextBaseline
   ) => {
     ctx.font = "14px Segoe UI";
+    ctx.fillStyle = "black";
     if (canvasTextAlign) ctx.textAlign = canvasTextAlign;
     if (baseline) ctx.textBaseline = baseline;
-    const screen = worldToScreen(p1);
+    const screen = transformations.worldToScreen(p1);
     ctx.fillText(text, screen.x, screen.y);
   },
 
   dotAtPoint: (p1: Vector) => {
     ctx.fillStyle = "grey";
-    const screenPoint = worldToScreen(pointToWorld(p1));
+    const screenPoint = transformations.pointToScreen(p1);
+    ctx.beginPath();
     ctx.arc(screenPoint.x, screenPoint.y, 3, 0, 2 * Math.PI);
     ctx.fill();
   },
@@ -115,12 +160,22 @@ const canvas = {
 //used for perfect 1-width line drawing
 const roundToHalf = (val: number) => Math.floor(val) + 0.5;
 
-const worldToScreen = (val: Vector): Vector => ({
-  x: val.x + window.innerWidth / 2,
-  y: -val.y + window.innerHeight / 2,
-});
+const transformations = {
+  worldToScreen: (val: Vector): Vector => ({
+    x: val.x + window.innerWidth / 2,
+    y: -val.y + window.innerHeight / 2,
+  }),
 
-const pointToWorld = (v: Vector): Vector => vector.multiply(v, scale);
+  pointToWorld: (v: Vector): Vector => vector.multiply(v, scale),
+
+  pointToScreen: (v: Vector): Vector =>
+    transformations.worldToScreen(transformations.pointToWorld(v)),
+
+  screenToPoint: (v: Vector): Vector => ({
+    x: (v.x - window.innerWidth / 2) / scale,
+    y: -(v.y - window.innerHeight / 2) / scale,
+  }),
+};
 
 const range = (from: number, to: number, step: number): number[] => {
   const res: number[] = [];
