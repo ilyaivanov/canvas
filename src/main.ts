@@ -20,7 +20,7 @@ function render() {
 
   const iterations: Vector[] = [pointPosition];
   let lastVal = pointPosition;
-  for (var i = 0; i < 20; i++) {
+  for (var i = 0; i < 200; i++) {
     const val: Vector = add(squareComplexNumber(lastVal), cPointPosition);
     iterations.push(val);
     lastVal = val;
@@ -43,7 +43,7 @@ const drawPolylineWithDots = (points: Vector[]) => {
 };
 
 const drawPoint = (point: Vector) =>
-  canvas.circleAt(pointToWorld(point), 4, { fill: "blue" });
+  canvas.circleAt(pointToWorld(point), 2, { fill: "blue" });
 
 const drawPointWithText = (point: Vector, text: string) => {
   canvas.circleAt(pointToWorld(point), 4, { fill: "red" });
@@ -58,7 +58,7 @@ const drawPointWithText = (point: Vector, text: string) => {
   });
 };
 
-let pointPosition: Vector = { x: -0.8, y: 0.9 };
+let pointPosition: Vector = { x: -0, y: 0 };
 let cPointPosition: Vector = { x: 0, y: 0 };
 
 let isSpacePressed = false;
@@ -71,9 +71,7 @@ document.addEventListener("keyup", (e) => {
 
 document.addEventListener("mousedown", (e) => {
   const updatePointFromMouseEvent = (e: MouseEvent) => {
-    if (isSpacePressed)
-      cPointPosition = screenToPoint({ x: e.clientX, y: e.clientY });
-    else pointPosition = screenToPoint({ x: e.clientX, y: e.clientY });
+    cPointPosition = screenToPoint({ x: e.clientX, y: e.clientY });
     render();
   };
   updatePointFromMouseEvent(e);
