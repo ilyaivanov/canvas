@@ -32,19 +32,14 @@ export class FullScreenCanvas {
     ctx.stroke();
   };
 
-  drawText = (
-    p1: Vector,
-    text: string,
-    canvasTextAlign?: CanvasTextAlign,
-    baseline?: CanvasTextBaseline
-  ) => {
+  drawText = (props: TextProps) => {
     const { ctx } = this;
-    ctx.font = "14px Segoe UI";
-    ctx.fillStyle = "black";
-    if (canvasTextAlign) ctx.textAlign = canvasTextAlign;
-    if (baseline) ctx.textBaseline = baseline;
-    const screen = this.worldToScreen(p1);
-    ctx.fillText(text, screen.x, screen.y);
+    ctx.font = `${props.weight || ""} ${props.fontSize || 14}px Segoe UI`;
+    ctx.fillStyle = props.color || "black";
+    if (props.canvasTextAlign) ctx.textAlign = props.canvasTextAlign;
+    if (props.baseline) ctx.textBaseline = props.baseline;
+    const screen = this.worldToScreen(props.position);
+    ctx.fillText(props.text, screen.x, screen.y);
   };
 
   circleAt = (
@@ -73,3 +68,12 @@ export class FullScreenCanvas {
     y: -v.y + window.innerHeight / 2,
   });
 }
+type TextProps = {
+  position: Vector;
+  text: string;
+  canvasTextAlign?: CanvasTextAlign;
+  baseline?: CanvasTextBaseline;
+  color?: string;
+  fontSize?: number;
+  weight?: "bold";
+};

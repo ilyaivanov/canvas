@@ -18,7 +18,13 @@ const renderVerticalAxis = (scale: number, canvas: FullScreenCanvas) => {
 
   valuesToRender.forEach((v) => {
     if (!isZero(v)) {
-      canvas.drawText({ x: -5, y: v * scale }, format(v), "right", "middle");
+      const position = { x: -5, y: v * scale };
+      canvas.drawText({
+        position,
+        text: format(v),
+        canvasTextAlign: "right",
+        baseline: "middle",
+      });
       canvas.drawLine({ x: -3, y: v * scale }, { x: 0, y: v * scale }, "grey");
     }
   });
@@ -37,7 +43,12 @@ const renderHorizontalAxis = (scale: number, canvas: FullScreenCanvas) => {
   valuesToRender.forEach((v) => {
     const zeroShift = isZero(v) ? -8 : 0;
     const position = { x: v * scale + zeroShift, y: -5 };
-    canvas.drawText(position, format(v), "center", "top");
+    canvas.drawText({
+      position,
+      text: format(v),
+      canvasTextAlign: "center",
+      baseline: "top",
+    });
     if (!isZero(v))
       canvas.drawLine({ x: v * scale, y: -3 }, { x: v * scale, y: 0 }, "grey");
   });

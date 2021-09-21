@@ -1,12 +1,12 @@
 import { viewAxis } from "./axis";
 import { FullScreenCanvas } from "./canvas";
-import { multiply, Vector } from "./vector";
+import { multiply, add, Vector } from "./vector";
 
 const canvas = new FullScreenCanvas({ onResize: render });
 
 document.body.appendChild(canvas.el);
 
-const scale = 200; //pixels to unit ratio
+const scale = 300; //pixels to unit ratio
 const pointToWorld = (v: Vector): Vector => multiply(v, scale);
 const screenToPoint = (v: Vector): Vector => ({
   x: (v.x - window.innerWidth / 2) / scale,
@@ -28,6 +28,8 @@ function render() {
     iterations.push(val);
     lastVal = val;
   }
+
+  drawPointWithText(cPointPosition, "C");
   drawPolylineWithDots(iterations);
 }
 
@@ -46,11 +48,35 @@ const drawPolylineWithDots = (points: Vector[]) => {
 const drawPoint = (point: Vector) =>
   canvas.circleAt(pointToWorld(point), 4, { fill: "blue" });
 
-let pointPosition: Vector = { x: -2, y: 1.8 };
+const drawPointWithText = (point: Vector, text: string) => {
+  canvas.circleAt(pointToWorld(point), 4, { fill: "red" });
+  canvas.drawText({
+    position: add(pointToWorld(point), { x: 5, y: -5 }),
+    text: "C",
+    baseline: "top",
+    canvasTextAlign: "left",
+    color: "red",
+    fontSize: 18,
+    weight: "bold",
+  });
+};
+
+let pointPosition: Vector = { x: -0.8, y: 0.9 };
+let cPointPosition: Vector = { x: 0, y: 0 };
+
+let isSpacePressed = false;
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") isSpacePressed = true;
+});
+document.addEventListener("keyup", (e) => {
+  if (e.code === "Space") isSpacePressed = false;
+});
 
 document.addEventListener("mousedown", (e) => {
   const updatePointFromMouseEvent = (e: MouseEvent) => {
-    pointPosition = screenToPoint({ x: e.clientX, y: e.clientY });
+    if (isSpacePressed)
+      cPointPosition = screenToPoint({ x: e.clientX, y: e.clientY });
+    else pointPosition = screenToPoint({ x: e.clientX, y: e.clientY });
     render();
   };
   updatePointFromMouseEvent(e);
